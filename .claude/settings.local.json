@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:docs.specifyapp.com)",
+      "Bash(/c/Users/gatag/AppData/Roaming/npm/specify --help)",
+      "Bash(/c/Users/gatag/AppData/Roaming/npm/specify init:*)"
+    ]
+  }
+}
