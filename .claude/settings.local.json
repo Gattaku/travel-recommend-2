@@ -5,7 +5,11 @@
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:docs.specifyapp.com)",
       "Bash(/c/Users/gatag/AppData/Roaming/npm/specify --help)",
-      "Bash(/c/Users/gatag/AppData/Roaming/npm/specify init:*)"
+      "Bash(/c/Users/gatag/AppData/Roaming/npm/specify init:*)",
+      "Bash(gh repo:*)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
