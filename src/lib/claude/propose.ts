@@ -4,7 +4,9 @@ import type {
   TripCondition,
   Destination,
   ProposeResponse,
+  HearingAnswer,
 } from '@/src/types';
+import { buildHearingPrompt } from '@/src/lib/hearing/buildHearingPrompt';
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -65,7 +67,11 @@ const STYLE_LABELS: Record<TripCondition['style'], string> = {
   city: '都市観光',
 };
 
-function buildPrompt(profile: FamilyProfile, condition: TripCondition): string {
+function buildPrompt(
+  profile: FamilyProfile,
+  condition: TripCondition,
+  hearingAnswers?: HearingAnswer[],
+): string {
   const childrenDesc =
     profile.childrenAges.length > 0
       ? `子供 ${profile.childrenAges.length} 名（年齢: ${profile.childrenAges.join(', ')} 歳）`
@@ -84,6 +90,7 @@ function buildPrompt(profile: FamilyProfile, condition: TripCondition): string {
 - スタイル: ${STYLE_LABELS[condition.style]}
 - エリア: ${condition.area === 'domestic' ? '国内' : '海外'}
 
+${hearingAnswers ? buildHearingPrompt(hearingAnswers, condition) : ''}
 ## 出力形式
 以下の JSON のみを返してください（コードブロック不要）:
 {
@@ -115,6 +122,7 @@ const TIMEOUT_MS = 28_000; // 28 秒（SC-001: 30 秒以内）
 export async function propose(
   profile: FamilyProfile,
   condition: TripCondition,
+  hearingAnswers?: HearingAnswer[],
 ): Promise<ProposeResponse> {
   validate(profile, condition);
 
@@ -137,7 +145,7 @@ export async function propose(
         messages: [
           {
             role: 'user',
-            content: buildPrompt(profile, condition),
+            content: buildPrompt(profile, condition, hearingAnswers),
           },
         ],
       },

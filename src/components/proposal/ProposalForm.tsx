@@ -30,6 +30,7 @@ type FormValues = z.infer<typeof schema>;
 
 interface ProposalFormProps {
   onSubmit: (profile: FamilyProfile, condition: TripCondition) => void;
+  onStartHearing?: (profile: FamilyProfile, condition: TripCondition) => void;
   isLoading: boolean;
 }
 
@@ -37,7 +38,7 @@ interface ProposalFormProps {
 // Component
 // ---------------------------------------------------------------------------
 
-export function ProposalForm({ onSubmit, isLoading }: ProposalFormProps) {
+export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFormProps) {
   const {
     register,
     handleSubmit,
@@ -76,6 +77,29 @@ export function ProposalForm({ onSubmit, isLoading }: ProposalFormProps) {
       area: values.area,
     };
     onSubmit(profile, condition);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function onHearingClick(values: any) {
+    values = values as FormValues;
+    const childrenAges = (values.childrenAgesRaw as string)
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter(Boolean)
+      .map(Number)
+      .filter((n: number) => !isNaN(n));
+
+    const profile: FamilyProfile = {
+      adultCount: values.adultCount,
+      childrenAges,
+    };
+    const condition: TripCondition = {
+      season: values.season,
+      budget: values.budget,
+      style: values.style,
+      area: values.area,
+    };
+    onStartHearing?.(profile, condition);
   }
 
   const hasErrors = Object.keys(errors).length > 0;
@@ -212,7 +236,7 @@ export function ProposalForm({ onSubmit, isLoading }: ProposalFormProps) {
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <button
           type="submit"
           disabled={isLoading}
@@ -221,6 +245,17 @@ export function ProposalForm({ onSubmit, isLoading }: ProposalFormProps) {
         >
           {isLoading ? '提案を生成中...' : '旅行先を提案して'}
         </button>
+        {onStartHearing && (
+          <button
+            type="button"
+            disabled={isLoading}
+            aria-disabled={isLoading}
+            onClick={handleSubmit(onHearingClick)}
+            className="w-full sm:w-auto px-8 py-3 border border-[var(--color-primary-500)] text-[var(--color-primary-600)] font-medium rounded-lg hover:bg-[var(--color-primary-50)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            もっと詳しく教える
+          </button>
+        )}
       </div>
     </form>
   );

@@ -129,3 +129,68 @@ export interface ApiError {
   error: string;
   fields?: string[];
 }
+
+// ============================================================
+// Hearing Types — インタラクティブ・ヒアリング
+// ============================================================
+
+/** ヒアリング質問の表示条件 */
+export interface QuestionCondition {
+  hasChildren?: boolean;       // 子供がいる場合のみ表示
+  hasInfant?: boolean;         // 幼児(0-2歳)がいる場合のみ表示
+  area?: 'domestic' | 'overseas'; // 特定エリア選択時のみ表示
+}
+
+/** ヒアリング質問の選択肢 */
+export interface HearingOption {
+  id: string;
+  label: string;
+}
+
+/** ヒアリング質問の回答形式 */
+export type HearingAnswerType = 'multi-select' | 'single-select' | 'free-text';
+
+/** ヒアリング質問カテゴリ */
+export type HearingCategory =
+  | 'hobbies'
+  | 'priorities'
+  | 'child-interests'
+  | 'transport'
+  | 'food';
+
+/** ヒアリング質問 */
+export interface HearingQuestion {
+  id: string;
+  category: HearingCategory;
+  questionText: string;
+  answerType: HearingAnswerType;
+  options: HearingOption[] | null;
+  condition: QuestionCondition | null;
+}
+
+/** ヒアリング回答（1問分） */
+export interface HearingAnswer {
+  questionId: string;
+  selectedOptions: string[];
+  freeText: string | null;
+  skipped: boolean;
+}
+
+/** 好みプロフィール（JSONB構造） */
+export interface HearingPreferences {
+  hobbies: string[];
+  travelPriorities: string[];
+  childInterests: string[];
+  transportPreference: string | null;
+  foodPreferences: string[];
+  customNotes: string | null;
+}
+
+/** 好みプロフィール（DBレコード） */
+export interface HearingProfile {
+  id: string;
+  userId: string;
+  preferences: HearingPreferences;
+  createdAt: string;
+  updatedAt: string;
+}

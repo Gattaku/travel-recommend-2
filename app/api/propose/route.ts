@@ -19,9 +19,17 @@ const TripConditionSchema = z.object({
   area: z.enum(['domestic', 'overseas']),
 });
 
+const HearingAnswerSchema = z.object({
+  questionId: z.string(),
+  selectedOptions: z.array(z.string()),
+  freeText: z.string().nullable(),
+  skipped: z.boolean(),
+});
+
 const RequestSchema = z.object({
   familyProfile: FamilyProfileSchema,
   condition: TripConditionSchema,
+  hearingAnswers: z.array(HearingAnswerSchema).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -57,12 +65,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { familyProfile, condition } = parsed.data;
+  const { familyProfile, condition, hearingAnswers } = parsed.data;
 
   // Generate proposals
   let result;
   try {
-    result = await propose(familyProfile, condition);
+    result = await propose(familyProfile, condition, hearingAnswers);
   } catch (err: unknown) {
     if (err instanceof ProposeError) {
       if (err.code === 'TIMEOUT') {
