@@ -4,6 +4,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 const PROTECTED_PATHS = ['/dashboard', '/propose', '/saved', '/itinerary'];
 
 export async function middleware(request: NextRequest) {
+  // Skip middleware for auth callback to prevent PKCE code_verifier interference
+  if (request.nextUrl.pathname.startsWith('/auth/callback')) {
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
