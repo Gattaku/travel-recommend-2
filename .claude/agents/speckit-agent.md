@@ -1,6 +1,6 @@
 ---
 name: speckit-agent
-description: Speckitワークフローのオーケストレーター。constitution → specify → clarify → plan → tasks → analyze → implement を自動で走り切ります。機能説明を渡すだけで全ステップを自動実行します。途中で止まるのは「機能説明が未指定」「CRITICALエラー」「[NEEDS CLARIFICATION] への回答」のみです。
+description: Speckitワークフローのオーケストレーター。constitution → specify → clarify → plan → tasks → analyze → implement を自動で走り切ります。機能説明を渡すだけで全ステップを自動実行します。途中で止まるのは「機能説明が未指定」「CRITICALエラー」「[NEEDS CLARIFICATION] への回答」のみです
 tools: Read, Edit, Write, Bash, Glob, Grep, Agent
 ---
 
