@@ -1,0 +1,237 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import type { Destination } from '@/src/types';
+import type { HotelSearchResult } from '@/src/lib/rakuten/hotels';
+import { getAreaCode, AREA_CODE_OPTIONS } from '@/src/lib/rakuten/areaCodeMap';
+import { HotelCard } from './HotelCard';
+
+interface HotelSearchSectionProps {
+  destinations: Destination[];
+  adultNum: number;
+  childrenCount: number;
+}
+
+function getTodayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getTomorrowStr(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+export function HotelSearchSection({
+  destinations,
+  adultNum,
+  childrenCount,
+}: HotelSearchSectionProps) {
+  const [selectedDestIndex, setSelectedDestIndex] = useState<number>(0);
+  const [largeClassCode, setLargeClassCode] = useState<string>('');
+  const [checkinDate, setCheckinDate] = useState<string>(getTodayStr());
+  const [checkoutDate, setCheckoutDate] = useState<string>(getTomorrowStr());
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<HotelSearchResult | null>(null);
+  const [searched, setSearched] = useState(false);
+
+  // 目的地が変わったらエリアコードを自動推定
+  useEffect(() => {
+    const dest = destinations[selectedDestIndex];
+    if (dest) {
+      const detected = getAreaCode(dest.name);
+      setLargeClassCode(detected ?? '');
+    }
+  }, [selectedDestIndex, destinations]);
+
+  async function handleSearch() {
+    if (!largeClassCode) {
+      setError('エリアを選択してください');
+      return;
+    }
+    if (!checkinDate || !checkoutDate) {
+      setError('チェックイン・チェックアウト日を入力してください');
+      return;
+    }
+    if (checkinDate >= checkoutDate) {
+      setError('チェックアウト日はチェックイン日より後にしてください');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+    setSearched(false);
+
+    try {
+      const params = new URLSearchParams({
+        largeClassCode,
+        checkinDate,
+        checkoutDate,
+        adultNum: String(adultNum),
+        upClassNum: String(childrenCount),
+        hits: '9',
+      });
+
+      const response = await fetch(`/api/hotels?${params.toString()}`);
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error ?? 'ホテル検索に失敗しました');
+      }
+
+      const data: HotelSearchResult = await response.json();
+      setResult(data);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'ホテル検索に失敗しました');
+    } finally {
+      setIsLoading(false);
+      setSearched(true);
+    }
+  }
+
+  return (
+    <section aria-label="ホテル検索" className="space-y-4">
+      <h2 className="text-base font-semibold text-[var(--color-neutral-700)]">
+        ホテルを検索する
+      </h2>
+
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 space-y-4">
+        {/* 目的地選択 */}
+        <div>
+          <label htmlFor="hotel-destination" className="block text-sm font-medium mb-1">
+            旅行先候補
+          </label>
+          <select
+            id="hotel-destination"
+            value={selectedDestIndex}
+            onChange={(e) => setSelectedDestIndex(Number(e.target.value))}
+            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+          >
+            {destinations.map((dest, i) => (
+              <option key={dest.name} value={i}>
+                {dest.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* エリアコード */}
+          <div>
+            <label htmlFor="hotel-area" className="block text-sm font-medium mb-1">
+              エリア <span aria-hidden="true" className="text-red-500">*</span>
+            </label>
+            <select
+              id="hotel-area"
+              value={largeClassCode}
+              onChange={(e) => setLargeClassCode(e.target.value)}
+              className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            >
+              <option value="">エリアを選択</option>
+              {AREA_CODE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            {largeClassCode === '' && (
+              <p className="mt-1 text-xs text-[var(--color-neutral-700)]">
+                自動判別できませんでした。エリアを選択してください。
+              </p>
+            )}
+          </div>
+
+          {/* チェックイン */}
+          <div>
+            <label htmlFor="hotel-checkin" className="block text-sm font-medium mb-1">
+              チェックイン <span aria-hidden="true" className="text-red-500">*</span>
+            </label>
+            <input
+              id="hotel-checkin"
+              type="date"
+              value={checkinDate}
+              min={getTodayStr()}
+              onChange={(e) => setCheckinDate(e.target.value)}
+              className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            />
+          </div>
+
+          {/* チェックアウト */}
+          <div>
+            <label htmlFor="hotel-checkout" className="block text-sm font-medium mb-1">
+              チェックアウト <span aria-hidden="true" className="text-red-500">*</span>
+            </label>
+            <input
+              id="hotel-checkout"
+              type="date"
+              value={checkoutDate}
+              min={checkinDate || getTodayStr()}
+              onChange={(e) => setCheckoutDate(e.target.value)}
+              className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            />
+          </div>
+        </div>
+
+        {error && (
+          <p role="alert" className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
+
+        <button
+          onClick={handleSearch}
+          disabled={isLoading}
+          aria-disabled={isLoading}
+          className="px-6 py-2.5 bg-[var(--color-primary-600)] text-white text-sm font-medium rounded-lg hover:bg-[var(--color-primary-700)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {isLoading ? '検索中...' : 'ホテルを検索'}
+        </button>
+      </div>
+
+      {/* ローディング */}
+      {isLoading && (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label="ホテルを検索中"
+          className="flex items-center gap-3 py-6 text-[var(--color-neutral-700)]"
+        >
+          <div
+            aria-hidden="true"
+            className="w-6 h-6 border-3 border-[var(--color-primary-200)] border-t-[var(--color-primary-600)] rounded-full animate-spin"
+          />
+          <p className="text-sm">ホテルを検索しています...</p>
+        </div>
+      )}
+
+      {/* 検索結果 */}
+      {!isLoading && searched && result && (
+        <>
+          {result.hotels.length === 0 ? (
+            <p className="text-sm text-[var(--color-neutral-700)] py-4">
+              条件に合うホテルが見つかりませんでした。日程やエリアを変えてお試しください。
+            </p>
+          ) : (
+            <div>
+              <p className="text-sm text-[var(--color-neutral-700)] mb-3">
+                {result.totalCount} 件中 {result.hotels.length} 件を表示
+              </p>
+              <ul
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                role="list"
+                aria-label="ホテル検索結果"
+              >
+                {result.hotels.map((hotel) => (
+                  <li key={hotel.hotelInformationUrl} role="listitem">
+                    <HotelCard hotel={hotel} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}

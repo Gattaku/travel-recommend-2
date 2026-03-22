@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ProposalForm } from '@/src/components/proposal/ProposalForm';
 import { ProposalList } from '@/src/components/proposal/ProposalList';
+import { HotelSearchSection } from '@/src/components/hotel/HotelSearchSection';
 import type {
   FamilyProfile,
   TripCondition,
@@ -14,11 +15,13 @@ export default function ProposePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ProposeResponse | null>(null);
+  const [familyProfile, setFamilyProfile] = useState<FamilyProfile | null>(null);
 
   async function handlePropose(profile: FamilyProfile, condition: TripCondition) {
     setIsLoading(true);
     setError(null);
     setResult(null);
+    setFamilyProfile(profile);
 
     try {
       const response = await fetch('/api/propose', {
@@ -105,11 +108,20 @@ export default function ProposePage() {
 
       {/* Results */}
       {result && !isLoading && (
-        <ProposalList
-          destinations={result.destinations}
-          proposalId={result.proposalId}
-          onSave={handleSave}
-        />
+        <>
+          <ProposalList
+            destinations={result.destinations}
+            proposalId={result.proposalId}
+            onSave={handleSave}
+          />
+
+          {/* Hotel search after itinerary candidates */}
+          <HotelSearchSection
+            destinations={result.destinations}
+            adultNum={familyProfile?.adultCount ?? 2}
+            childrenCount={familyProfile?.childrenAges.length ?? 0}
+          />
+        </>
       )}
     </div>
   );
