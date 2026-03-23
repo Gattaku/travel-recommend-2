@@ -1,10 +1,14 @@
 /**
  * 楽天トラベル SimpleHotelSearch クライアント
  * API docs: https://webservice.rakuten.co.jp/documentation/simple-hotel-search
+ *
+ * 2026年 新ドメイン (openapi.rakuten.co.jp) 対応済み
+ * - accessKey パラメータ必須
+ * - Origin / Referer ヘッダー必須
  */
 
-const RAKUTEN_API_BASE = 'https://app.rakuten.co.jp/services/api/Travel';
-const SIMPLE_HOTEL_SEARCH = `${RAKUTEN_API_BASE}/SimpleHotelSearch/20170426`;
+const SIMPLE_HOTEL_SEARCH =
+  'https://openapi.rakuten.co.jp/engine/api/Travel/SimpleHotelSearch/20170426';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -71,8 +75,17 @@ export async function searchHotels(
     );
   }
 
+  const accessKey = process.env.RAKUTEN_ACCESS_KEY?.trim();
+  if (!accessKey) {
+    throw new RakutenApiError(
+      'RAKUTEN_ACCESS_KEY が設定されていません',
+      'AUTH_ERROR',
+    );
+  }
+
   const searchParams = new URLSearchParams({
     applicationId,
+    accessKey,
     format: 'json',
     largeClassCode: 'japan',
     middleClassCode: params.largeClassCode,
@@ -90,11 +103,16 @@ export async function searchHotels(
   }
 
   const url = `${SIMPLE_HOTEL_SEARCH}?${searchParams.toString()}`;
-  console.error('[RakutenAPI] applicationId length:', applicationId.length, 'prefix:', applicationId.slice(0, 4), 'url:', url.replace(applicationId, applicationId.slice(0, 4) + '***'));
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://travel-recommend-2-33ttmo5ff-ogata-kazuyoshis-projects.vercel.app';
 
   let response: Response;
   try {
     response = await fetch(url, {
+      headers: {
+        Origin: appUrl,
+        Referer: `${appUrl}/`,
+      },
       next: { revalidate: 300 }, // 5 分キャッシュ
     });
   } catch (err: unknown) {
