@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProposalForm } from '@/src/components/proposal/ProposalForm';
+import { PathSelector } from '@/src/components/proposal/PathSelector';
 import { ProposalList } from '@/src/components/proposal/ProposalList';
 import { HotelSearchSection } from '@/src/components/hotel/HotelSearchSection';
 import { HearingFlow } from '@/src/components/hearing/HearingFlow';
@@ -17,10 +18,11 @@ import type {
 // Page state
 // ---------------------------------------------------------------------------
 type PageState =
-  | 'form'       // 基本条件入力中
-  | 'hearing'    // ヒアリング中
-  | 'loading'    // 提案生成中
-  | 'result';    // 提案結果表示中
+  | 'form'         // 基本条件入力中
+  | 'path-select'  // クイック or こだわり選択
+  | 'hearing'      // ヒアリング中
+  | 'loading'      // 提案生成中
+  | 'result';      // 提案結果表示中
 
 const LOADING_MESSAGES = [
   '旅行先を探しています...',
@@ -29,6 +31,16 @@ const LOADING_MESSAGES = [
   'もう少しお待ちください...',
 ];
 
+const SEASON_LABELS: Record<string, string> = {
+  spring: '春', summer: '夏', autumn: '秋', winter: '冬',
+};
+const STYLE_LABELS: Record<string, string> = {
+  nature: '自然体験', culture: '文化・歴史', resort: 'リゾート', onsen: '温泉', city: '都市観光',
+};
+const AREA_LABELS: Record<string, string> = {
+  domestic: '国内', overseas: '海外',
+};
+
 export default function ProposePage() {
   const [pageState, setPageState] = useState<PageState>('form');
   const [error, setError] = useState<string | null>(null);
@@ -36,19 +48,23 @@ export default function ProposePage() {
   const [familyProfile, setFamilyProfile] = useState<FamilyProfile | null>(null);
   const [tripCondition, setTripCondition] = useState<TripCondition | null>(null);
 
-  // ─── 基本条件のみで提案 ───
-  async function handlePropose(profile: FamilyProfile, condition: TripCondition) {
-    setFamilyProfile(profile);
-    setTripCondition(condition);
-    await fetchProposal(profile, condition);
-  }
-
-  // ─── ヒアリング開始 ───
-  function handleStartHearing(profile: FamilyProfile, condition: TripCondition) {
+  // ─── フォーム送信 → パス選択画面へ ───
+  function handleFormNext(profile: FamilyProfile, condition: TripCondition) {
     setFamilyProfile(profile);
     setTripCondition(condition);
     setError(null);
     setResult(null);
+    setPageState('path-select');
+  }
+
+  // ─── クイック提案 ───
+  async function handleQuickPropose() {
+    if (!familyProfile || !tripCondition) return;
+    await fetchProposal(familyProfile, tripCondition);
+  }
+
+  // ─── こだわり提案 → ヒアリングへ ───
+  function handleDetailedHearing() {
     setPageState('hearing');
   }
 
@@ -67,6 +83,11 @@ export default function ProposePage() {
   // ─── 「もっと絞り込む」→ ヒアリングへ ───
   function handleRefine() {
     setPageState('hearing');
+  }
+
+  // ─── 「条件を変更する」→ フォームへ ───
+  function handleChangeConditions() {
+    setPageState('form');
   }
 
   // ─── 提案 API 呼び出し ───
@@ -123,16 +144,6 @@ export default function ProposePage() {
 
   const isLoading = pageState === 'loading';
 
-  const SEASON_LABELS: Record<string, string> = {
-    spring: '春', summer: '夏', autumn: '秋', winter: '冬',
-  };
-  const STYLE_LABELS: Record<string, string> = {
-    nature: '自然体験', culture: '文化・歴史', resort: 'リゾート', onsen: '温泉', city: '都市観光',
-  };
-  const AREA_LABELS: Record<string, string> = {
-    domestic: '国内', overseas: '海外',
-  };
-
   return (
     <div className="space-y-8">
       <header>
@@ -144,21 +155,39 @@ export default function ProposePage() {
         </p>
       </header>
 
-      {/* 基本条件入力フォーム（form/result 状態で表示） */}
-      {(pageState === 'form' || pageState === 'result') && (
+      {/* Step 1: 基本条件入力フォーム */}
+      {pageState === 'form' && (
         <section
           aria-label="旅行条件入力"
           className="card-static p-6"
         >
           <ProposalForm
-            onSubmit={handlePropose}
-            onStartHearing={handleStartHearing}
+            onSubmit={handleFormNext}
             isLoading={isLoading}
           />
         </section>
       )}
 
-      {/* ヒアリングフロー */}
+      {/* Step 2: パス選択（クイック vs こだわり） */}
+      {pageState === 'path-select' && (
+        <section aria-label="提案方法を選択" className="card-static p-6">
+          <PathSelector
+            onQuickPropose={handleQuickPropose}
+            onDetailedHearing={handleDetailedHearing}
+          />
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={handleChangeConditions}
+              className="text-sm text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-700)] underline transition-colors"
+            >
+              ← 条件を変更する
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Step 3: ヒアリングフロー */}
       {pageState === 'hearing' && familyProfile && tripCondition && (
         <section aria-label="ヒアリング">
           <HearingFlow
@@ -178,7 +207,6 @@ export default function ProposePage() {
           aria-label="提案を生成中"
           className="flex flex-col items-center py-16 text-[var(--color-neutral-600)]"
         >
-          {/* Animated travel icon */}
           <div className="relative mb-6">
             <div className="w-16 h-16 rounded-full bg-[var(--color-primary-50)] flex items-center justify-center">
               <svg className="w-8 h-8 text-[var(--color-primary-500)] animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -226,6 +254,13 @@ export default function ProposePage() {
                 大人{familyProfile.adultCount}名
                 {familyProfile.childrenAges.length > 0 && ` + 子供(${familyProfile.childrenAges.join('歳, ')}歳)`}
               </span>
+              <button
+                type="button"
+                onClick={handleChangeConditions}
+                className="text-xs text-[var(--color-primary-600)] hover:text-[var(--color-primary-700)] underline ml-1"
+              >
+                条件を変更
+              </button>
             </div>
           )}
 
@@ -246,7 +281,6 @@ export default function ProposePage() {
             onSave={handleSave}
           />
 
-          {/* Hotel search after itinerary candidates */}
           <HotelSearchSection
             destinations={result.destinations}
             adultNum={familyProfile?.adultCount ?? 2}
@@ -264,12 +298,12 @@ export default function ProposePage() {
 function LoadingMessages({ messages }: { messages: string[] }) {
   const [index, setIndex] = useState(0);
 
-  useState(() => {
+  useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % messages.length);
     }, 3000);
     return () => clearInterval(timer);
-  });
+  }, [messages.length]);
 
   return (
     <p className="text-sm font-medium text-[var(--color-neutral-700)] transition-opacity duration-500">
