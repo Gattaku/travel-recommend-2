@@ -63,7 +63,7 @@ export class RakutenApiError extends Error {
 export async function searchHotels(
   params: HotelSearchParams,
 ): Promise<HotelSearchResult> {
-  const applicationId = process.env.RAKUTEN_APPLICATION_ID;
+  const applicationId = process.env.RAKUTEN_APPLICATION_ID?.trim();
   if (!applicationId) {
     throw new RakutenApiError(
       'RAKUTEN_APPLICATION_ID が設定されていません',
@@ -90,6 +90,7 @@ export async function searchHotels(
   }
 
   const url = `${SIMPLE_HOTEL_SEARCH}?${searchParams.toString()}`;
+  console.log('[RakutenAPI] applicationId length:', applicationId.length, 'prefix:', applicationId.slice(0, 4));
 
   let response: Response;
   try {
