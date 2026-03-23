@@ -13,3 +13,15 @@ export type SupabaseClient = any;
 export function asTyped(client: unknown): SupabaseClient {
   return client;
 }
+
+// ---------------------------------------------------------------------------
+// Table name constants for type-safe table references
+// ---------------------------------------------------------------------------
+
+export const TABLES = {
+  FAMILY_PROFILES: 'family_profiles',
+  TRIP_PROPOSALS: 'trip_proposals',
+  SAVED_PROPOSALS: 'saved_proposals',
+  ITINERARIES: 'itineraries',
+  HEARING_PROFILES: 'hearing_profiles',
+} as const;
