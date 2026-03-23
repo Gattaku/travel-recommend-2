@@ -166,6 +166,7 @@ export interface HearingQuestion {
   answerType: HearingAnswerType;
   options: HearingOption[] | null;
   condition: QuestionCondition | null;
+  icon?: string;
 }
 
 /** ヒアリング回答（1問分） */

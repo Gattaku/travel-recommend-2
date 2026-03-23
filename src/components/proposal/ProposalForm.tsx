@@ -38,6 +38,8 @@ interface ProposalFormProps {
 // Component
 // ---------------------------------------------------------------------------
 
+const INPUT_CLASS = "w-full border border-[var(--border)] rounded-[var(--radius-lg)] px-3 py-2.5 text-sm bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] focus:border-[var(--color-primary-400)] transition-colors";
+
 export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFormProps) {
   const {
     register,
@@ -56,9 +58,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function onFormSubmit(values: any) {
-    values = values as FormValues;
+  function parseValues(values: FormValues) {
     const childrenAges = (values.childrenAgesRaw as string)
       .split(',')
       .map((s: string) => s.trim())
@@ -76,29 +76,18 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
       style: values.style,
       area: values.area,
     };
+    return { profile, condition };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function onFormSubmit(values: any) {
+    const { profile, condition } = parseValues(values as FormValues);
     onSubmit(profile, condition);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function onHearingClick(values: any) {
-    values = values as FormValues;
-    const childrenAges = (values.childrenAgesRaw as string)
-      .split(',')
-      .map((s: string) => s.trim())
-      .filter(Boolean)
-      .map(Number)
-      .filter((n: number) => !isNaN(n));
-
-    const profile: FamilyProfile = {
-      adultCount: values.adultCount,
-      childrenAges,
-    };
-    const condition: TripCondition = {
-      season: values.season,
-      budget: values.budget,
-      style: values.style,
-      area: values.area,
-    };
+    const { profile, condition } = parseValues(values as FormValues);
     onStartHearing?.(profile, condition);
   }
 
@@ -114,16 +103,16 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
         <div
           role="alert"
           aria-live="polite"
-          className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
+          className="mb-4 p-3 bg-red-50 border border-red-200 rounded-[var(--radius-lg)] text-sm text-red-700"
         >
           入力内容を確認してください。
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* 大人人数 */}
         <div>
-          <label htmlFor="adultCount" className="block text-sm font-medium mb-1">
+          <label htmlFor="adultCount" className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">
             大人人数 <span aria-hidden="true" className="text-red-500">*</span>
           </label>
           <input
@@ -133,7 +122,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
             max={10}
             aria-required="true"
             aria-describedby={errors.adultCount ? 'adultCount-error' : undefined}
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className={INPUT_CLASS}
             {...register('adultCount', { valueAsNumber: true })}
           />
           {errors.adultCount && (
@@ -145,30 +134,30 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
 
         {/* 子供の年齢 */}
         <div>
-          <label htmlFor="childrenAgesRaw" className="block text-sm font-medium mb-1">
+          <label htmlFor="childrenAgesRaw" className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">
             子供の年齢（カンマ区切り）
           </label>
           <input
             id="childrenAgesRaw"
             type="text"
             placeholder="例: 5,8"
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className={INPUT_CLASS}
             {...register('childrenAgesRaw')}
           />
-          <p className="mt-1 text-xs text-[var(--color-neutral-700)]">
+          <p className="mt-1 text-xs text-[var(--color-neutral-500)]">
             子供がいない場合は空欄
           </p>
         </div>
 
         {/* 旅行時期 */}
         <div>
-          <label htmlFor="season" className="block text-sm font-medium mb-1">
+          <label htmlFor="season" className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">
             旅行時期 <span aria-hidden="true" className="text-red-500">*</span>
           </label>
           <select
             id="season"
             aria-required="true"
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className={INPUT_CLASS}
             {...register('season')}
           >
             <option value="spring">春（3〜5月）</option>
@@ -180,7 +169,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
 
         {/* 予算 */}
         <div>
-          <label htmlFor="budget" className="block text-sm font-medium mb-1">
+          <label htmlFor="budget" className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">
             予算（円） <span aria-hidden="true" className="text-red-500">*</span>
           </label>
           <input
@@ -190,7 +179,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
             step={10000}
             aria-required="true"
             aria-describedby={errors.budget ? 'budget-error' : undefined}
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className={INPUT_CLASS}
             {...register('budget', { valueAsNumber: true })}
           />
           {errors.budget && (
@@ -202,13 +191,13 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
 
         {/* 旅行スタイル */}
         <div>
-          <label htmlFor="style" className="block text-sm font-medium mb-1">
+          <label htmlFor="style" className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">
             旅行スタイル <span aria-hidden="true" className="text-red-500">*</span>
           </label>
           <select
             id="style"
             aria-required="true"
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className={INPUT_CLASS}
             {...register('style')}
           >
             <option value="nature">自然体験</option>
@@ -221,13 +210,13 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
 
         {/* エリア */}
         <div>
-          <label htmlFor="area" className="block text-sm font-medium mb-1">
+          <label htmlFor="area" className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">
             エリア <span aria-hidden="true" className="text-red-500">*</span>
           </label>
           <select
             id="area"
             aria-required="true"
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className={INPUT_CLASS}
             {...register('area')}
           >
             <option value="domestic">国内</option>
@@ -236,14 +225,14 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+      <div className="mt-8 flex flex-col sm:flex-row gap-3">
         <button
           type="submit"
           disabled={isLoading}
           aria-disabled={isLoading}
-          className="w-full sm:w-auto px-8 py-3 bg-[var(--color-primary-600)] text-white font-medium rounded-lg hover:bg-[var(--color-primary-700)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="btn-primary w-full sm:w-auto px-8 py-3 text-sm"
         >
-          {isLoading ? '提案を生成中...' : '旅行先を提案して'}
+          {isLoading ? '提案を生成中...' : '次へ →'}
         </button>
         {onStartHearing && (
           <button
@@ -251,7 +240,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
             disabled={isLoading}
             aria-disabled={isLoading}
             onClick={handleSubmit(onHearingClick)}
-            className="w-full sm:w-auto px-8 py-3 border border-[var(--color-primary-500)] text-[var(--color-primary-600)] font-medium rounded-lg hover:bg-[var(--color-primary-50)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn-secondary w-full sm:w-auto px-8 py-3 text-sm"
           >
             もっと詳しく教える
           </button>

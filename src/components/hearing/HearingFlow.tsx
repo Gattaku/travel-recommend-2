@@ -184,6 +184,7 @@ export function HearingFlow({
   const [initialized, setInitialized] = useState(false);
   const [ignorePreset, setIgnorePreset] = useState(false);
   const [hasPreset, setHasPreset] = useState(false);
+  const [showPresetChoice, setShowPresetChoice] = useState(false);
 
   // 初期化: draft復元 or 保存済みプロフィール読み込み
   useEffect(() => {
@@ -206,6 +207,7 @@ export function HearingFlow({
         if (preset.length > 0) {
           setAnswers(preset);
           setHasPreset(true);
+          setShowPresetChoice(true);
         }
       }
 
@@ -227,7 +229,7 @@ export function HearingFlow({
       // 最後の質問に回答した場合
       if (nextStep >= questions.length) {
         clearDraft();
-        // プロフィールを自動保存 (US2: T015)
+        // プロフィールを自動保存
         const preferences = answersToPreferences(newAnswers);
         saveProfile(preferences);
         onComplete(newAnswers);
@@ -246,17 +248,31 @@ export function HearingFlow({
     handleAnswer(skipAnswer);
   }, [currentStep, questions, handleAnswer]);
 
+  const handleBack = useCallback(() => {
+    if (currentStep > 0) {
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      saveDraft({ answers, currentStep: prevStep });
+    }
+  }, [currentStep, answers]);
+
   const handleSkipAll = useCallback(() => {
     clearDraft();
     onSkipAll();
   }, [onSkipAll]);
 
-  // 「今回だけ違う条件で探す」(US2: T017)
+  // プリセットを使う
+  const handleUsePreset = useCallback(() => {
+    setShowPresetChoice(false);
+  }, []);
+
+  // プリセットをリセットして最初から
   const handleIgnorePreset = useCallback(() => {
     setIgnorePreset(true);
     setAnswers([]);
     setCurrentStep(0);
     setHasPreset(false);
+    setShowPresetChoice(false);
     clearDraft();
   }, []);
 
@@ -268,8 +284,46 @@ export function HearingFlow({
 
   if (!initialized) {
     return (
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6">
-        <p className="text-sm text-[var(--color-neutral-700)]">読み込み中...</p>
+      <div className="card-static p-6">
+        <p className="text-sm text-[var(--color-neutral-600)]">読み込み中...</p>
+      </div>
+    );
+  }
+
+  // プリセット選択画面
+  if (showPresetChoice) {
+    return (
+      <div className="card-static p-6 sm:p-8">
+        <div className="text-center max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-full bg-[var(--color-primary-50)] flex items-center justify-center mx-auto mb-4">
+            <svg className="w-7 h-7 text-[var(--color-primary-500)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
+            前回の回答があります
+          </h2>
+          <p className="text-sm text-[var(--color-neutral-600)] mb-6 leading-relaxed">
+            前回のヒアリング回答を引き継いで、そのまま使うこともできます。
+            新しく答え直すこともできます。
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              type="button"
+              onClick={handleUsePreset}
+              className="btn-primary px-6 py-2.5 text-sm"
+            >
+              前回の回答を使う
+            </button>
+            <button
+              type="button"
+              onClick={handleIgnorePreset}
+              className="btn-secondary px-6 py-2.5 text-sm"
+            >
+              最初から答え直す
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -283,35 +337,24 @@ export function HearingFlow({
   const existingAnswer = answers.find((a) => a.questionId === currentQuestion.id);
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+    <div className="card-static p-6 sm:p-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
         <h2 className="text-xl font-bold text-[var(--foreground)]">
           もう少し教えてください
         </h2>
-        <div className="flex gap-3">
-          {hasPreset && !ignorePreset && (
-            <button
-              type="button"
-              onClick={handleIgnorePreset}
-              className="text-sm text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-800)] underline transition-colors"
-            >
-              今回だけ違う条件で探す
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleSkipAll}
-            className="text-sm text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-800)] underline transition-colors"
-          >
-            スキップして基本条件だけで提案
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleSkipAll}
+          className="text-sm text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-700)] underline transition-colors"
+        >
+          スキップして基本条件だけで提案
+        </button>
       </div>
 
-      {hasPreset && !ignorePreset && currentStep === 0 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-          前回の回答がプリセットされています。変更がなければそのまま「次へ」を押してください。
-        </div>
+      {hasPreset && !ignorePreset && (
+        <p className="text-xs text-[var(--color-primary-600)] mb-4">
+          前回の回答がプリセットされています
+        </p>
       )}
 
       <HearingProgress currentStep={currentStep} totalSteps={questions.length} />
@@ -322,6 +365,8 @@ export function HearingFlow({
         initialAnswer={existingAnswer}
         onAnswer={handleAnswer}
         onSkip={handleSkip}
+        onBack={handleBack}
+        showBack={currentStep > 0}
       />
     </div>
   );
