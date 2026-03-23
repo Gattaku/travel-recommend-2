@@ -90,7 +90,7 @@ export async function searchHotels(
   }
 
   const url = `${SIMPLE_HOTEL_SEARCH}?${searchParams.toString()}`;
-  console.log('[RakutenAPI] applicationId length:', applicationId.length, 'prefix:', applicationId.slice(0, 4));
+  console.error('[RakutenAPI] applicationId length:', applicationId.length, 'prefix:', applicationId.slice(0, 4), 'url:', url.replace(applicationId, applicationId.slice(0, 4) + '***'));
 
   let response: Response;
   try {
