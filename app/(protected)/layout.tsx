@@ -20,31 +20,31 @@ export default async function ProtectedLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--background)]">
-      <header className="border-b border-[var(--border)] bg-[var(--surface)]">
-        <nav className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <header className="border-b border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
+        <nav className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link
             href="/dashboard"
-            className="font-bold text-[var(--color-primary-600)] text-lg"
+            className="font-bold text-transparent bg-clip-text bg-[var(--gradient-hero)] text-xl tracking-tight"
           >
             家族旅行プランナー
           </Link>
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-1 text-sm">
             <Link
               href="/propose"
-              className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-600)] transition-colors"
+              className="px-3 py-2 rounded-[var(--radius-lg)] text-[var(--color-neutral-700)] hover:text-[var(--color-primary-600)] hover:bg-[var(--color-primary-50)] font-medium transition-all"
             >
-              提案を見る
+              旅行先を探す
             </Link>
             <Link
               href="/dashboard"
-              className="text-[var(--color-neutral-700)] hover:text-[var(--color-primary-600)] transition-colors"
+              className="px-3 py-2 rounded-[var(--radius-lg)] text-[var(--color-neutral-700)] hover:text-[var(--color-primary-600)] hover:bg-[var(--color-primary-50)] font-medium transition-all"
             >
-              保存済み
+              マイリスト
             </Link>
           </div>
         </nav>
       </header>
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8">
         {children}
       </main>
     </div>

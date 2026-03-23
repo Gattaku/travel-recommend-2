@@ -114,13 +114,13 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
         <div
           role="alert"
           aria-live="polite"
-          className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
+          className="mb-4 p-3 bg-red-50 border border-red-200 rounded-[var(--radius-lg)] text-sm text-red-700"
         >
           入力内容を確認してください。
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* 大人人数 */}
         <div>
           <label htmlFor="adultCount" className="block text-sm font-medium mb-1">
@@ -133,7 +133,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
             max={10}
             aria-required="true"
             aria-describedby={errors.adultCount ? 'adultCount-error' : undefined}
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className="w-full border border-[var(--border)] rounded-[var(--radius-lg)] px-3 py-2.5 text-sm bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] focus:border-[var(--color-primary-400)] transition-colors"
             {...register('adultCount', { valueAsNumber: true })}
           />
           {errors.adultCount && (
@@ -152,7 +152,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
             id="childrenAgesRaw"
             type="text"
             placeholder="例: 5,8"
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className="w-full border border-[var(--border)] rounded-[var(--radius-lg)] px-3 py-2.5 text-sm bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] focus:border-[var(--color-primary-400)] transition-colors"
             {...register('childrenAgesRaw')}
           />
           <p className="mt-1 text-xs text-[var(--color-neutral-700)]">
@@ -168,7 +168,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
           <select
             id="season"
             aria-required="true"
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className="w-full border border-[var(--border)] rounded-[var(--radius-lg)] px-3 py-2.5 text-sm bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] focus:border-[var(--color-primary-400)] transition-colors"
             {...register('season')}
           >
             <option value="spring">春（3〜5月）</option>
@@ -190,7 +190,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
             step={10000}
             aria-required="true"
             aria-describedby={errors.budget ? 'budget-error' : undefined}
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className="w-full border border-[var(--border)] rounded-[var(--radius-lg)] px-3 py-2.5 text-sm bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] focus:border-[var(--color-primary-400)] transition-colors"
             {...register('budget', { valueAsNumber: true })}
           />
           {errors.budget && (
@@ -208,7 +208,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
           <select
             id="style"
             aria-required="true"
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className="w-full border border-[var(--border)] rounded-[var(--radius-lg)] px-3 py-2.5 text-sm bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] focus:border-[var(--color-primary-400)] transition-colors"
             {...register('style')}
           >
             <option value="nature">自然体験</option>
@@ -227,7 +227,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
           <select
             id="area"
             aria-required="true"
-            className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            className="w-full border border-[var(--border)] rounded-[var(--radius-lg)] px-3 py-2.5 text-sm bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-400)] focus:border-[var(--color-primary-400)] transition-colors"
             {...register('area')}
           >
             <option value="domestic">国内</option>
@@ -236,12 +236,12 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+      <div className="mt-8 flex flex-col sm:flex-row gap-3">
         <button
           type="submit"
           disabled={isLoading}
           aria-disabled={isLoading}
-          className="w-full sm:w-auto px-8 py-3 bg-[var(--color-primary-600)] text-white font-medium rounded-lg hover:bg-[var(--color-primary-700)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="btn-primary w-full sm:w-auto px-8 py-3 text-sm"
         >
           {isLoading ? '提案を生成中...' : '旅行先を提案して'}
         </button>
@@ -251,7 +251,7 @@ export function ProposalForm({ onSubmit, onStartHearing, isLoading }: ProposalFo
             disabled={isLoading}
             aria-disabled={isLoading}
             onClick={handleSubmit(onHearingClick)}
-            className="w-full sm:w-auto px-8 py-3 border border-[var(--color-primary-500)] text-[var(--color-primary-600)] font-medium rounded-lg hover:bg-[var(--color-primary-50)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn-secondary w-full sm:w-auto px-8 py-3 text-sm"
           >
             もっと詳しく教える
           </button>
