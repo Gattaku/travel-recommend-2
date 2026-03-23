@@ -74,7 +74,8 @@ export async function searchHotels(
   const searchParams = new URLSearchParams({
     applicationId,
     format: 'json',
-    largeClassCode: params.largeClassCode,
+    largeClassCode: 'japan',
+    middleClassCode: params.largeClassCode,
     checkinDate: params.checkinDate,
     checkoutDate: params.checkoutDate,
     adultNum: String(params.adultNum),
@@ -101,8 +102,15 @@ export async function searchHotels(
   }
 
   if (!response.ok) {
+    let detail = '';
+    try {
+      const body = await response.json();
+      detail = body.error_description ?? body.error ?? JSON.stringify(body);
+    } catch {
+      // レスポンスボディの読み取りに失敗しても無視
+    }
     throw new RakutenApiError(
-      `楽天トラベルAPI エラー: HTTP ${response.status}`,
+      `楽天トラベルAPI エラー: HTTP ${response.status}${detail ? ` - ${detail}` : ''}`,
       'API_ERROR',
       response.status,
     );
