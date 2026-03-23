@@ -5,6 +5,7 @@
  * 2026年 新ドメイン (openapi.rakuten.co.jp) 対応済み
  * - accessKey パラメータ必須
  * - Origin / Referer ヘッダー必須
+ * - largeClassCode + middleClassCode + smallClassCode の3階層すべて必須
  */
 
 const SIMPLE_HOTEL_SEARCH =
@@ -16,7 +17,9 @@ const SIMPLE_HOTEL_SEARCH =
 
 export interface HotelSearchParams {
   /** 都道府県コード (例: "hokkaido") */
-  largeClassCode: string;
+  middleClassCode: string;
+  /** エリアコード (例: "sapporo") */
+  smallClassCode: string;
   /** チェックイン日 YYYY-MM-DD */
   checkinDate: string;
   /** チェックアウト日 YYYY-MM-DD */
@@ -88,7 +91,8 @@ export async function searchHotels(
     accessKey,
     format: 'json',
     largeClassCode: 'japan',
-    middleClassCode: params.largeClassCode,
+    middleClassCode: params.middleClassCode,
+    smallClassCode: params.smallClassCode,
     checkinDate: params.checkinDate,
     checkoutDate: params.checkoutDate,
     adultNum: String(params.adultNum),

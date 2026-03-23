@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Destination } from '@/src/types';
 import type { HotelSearchResult } from '@/src/lib/rakuten/hotels';
-import { getAreaCode, AREA_CODE_OPTIONS } from '@/src/lib/rakuten/areaCodeMap';
+import { getAreaCode, PREFECTURE_AREAS } from '@/src/lib/rakuten/areaCodeMap';
+import type { SubArea } from '@/src/lib/rakuten/areaCodeMap';
 import { HotelCard } from './HotelCard';
 
 interface HotelSearchSectionProps {
@@ -22,13 +23,17 @@ function getTomorrowStr(): string {
   return d.toISOString().slice(0, 10);
 }
 
+// 地方でグルーピングした選択肢を生成
+const REGION_ORDER = ['北海道', '東北', '関東', '甲信越', '北陸', '東海', '近畿', '中国', '四国', '九州', '沖縄'];
+
 export function HotelSearchSection({
   destinations,
   adultNum,
   childrenCount,
 }: HotelSearchSectionProps) {
   const [selectedDestIndex, setSelectedDestIndex] = useState<number>(0);
-  const [largeClassCode, setLargeClassCode] = useState<string>('');
+  const [middleClassCode, setMiddleClassCode] = useState<string>('');
+  const [smallClassCode, setSmallClassCode] = useState<string>('');
   const [checkinDate, setCheckinDate] = useState<string>(getTodayStr());
   const [checkoutDate, setCheckoutDate] = useState<string>(getTomorrowStr());
   const [isLoading, setIsLoading] = useState(false);
@@ -36,18 +41,38 @@ export function HotelSearchSection({
   const [result, setResult] = useState<HotelSearchResult | null>(null);
   const [searched, setSearched] = useState(false);
 
+  // 選択中の都道府県に対応するサブエリア一覧
+  const subAreas: SubArea[] = useMemo(() => {
+    if (!middleClassCode) return [];
+    const pref = PREFECTURE_AREAS.find((p) => p.middleClassCode === middleClassCode);
+    return pref?.subAreas ?? [];
+  }, [middleClassCode]);
+
   // 目的地が変わったらエリアコードを自動推定
   useEffect(() => {
     const dest = destinations[selectedDestIndex];
     if (dest) {
       const detected = getAreaCode(dest.name);
-      setLargeClassCode(detected ?? '');
+      if (detected) {
+        setMiddleClassCode(detected.middleClassCode);
+        setSmallClassCode(detected.smallClassCode);
+      } else {
+        setMiddleClassCode('');
+        setSmallClassCode('');
+      }
     }
   }, [selectedDestIndex, destinations]);
 
+  // 都道府県が変わったらサブエリアをリセット
+  function handlePrefChange(newMiddle: string) {
+    setMiddleClassCode(newMiddle);
+    const pref = PREFECTURE_AREAS.find((p) => p.middleClassCode === newMiddle);
+    setSmallClassCode(pref?.subAreas[0]?.smallClassCode ?? '');
+  }
+
   async function handleSearch() {
-    if (!largeClassCode) {
-      setError('エリアを選択してください');
+    if (!middleClassCode || !smallClassCode) {
+      setError('都道府県とエリアを選択してください');
       return;
     }
     if (!checkinDate || !checkoutDate) {
@@ -66,7 +91,8 @@ export function HotelSearchSection({
 
     try {
       const params = new URLSearchParams({
-        largeClassCode,
+        middleClassCode,
+        smallClassCode,
         checkinDate,
         checkoutDate,
         adultNum: String(adultNum),
@@ -117,29 +143,54 @@ export function HotelSearchSection({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* エリアコード */}
+          {/* 都道府県 */}
+          <div>
+            <label htmlFor="hotel-pref" className="block text-sm font-medium mb-1">
+              都道府県 <span aria-hidden="true" className="text-red-500">*</span>
+            </label>
+            <select
+              id="hotel-pref"
+              value={middleClassCode}
+              onChange={(e) => handlePrefChange(e.target.value)}
+              className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+            >
+              <option value="">都道府県を選択</option>
+              {REGION_ORDER.map((region) => (
+                <optgroup key={region} label={region}>
+                  {PREFECTURE_AREAS.filter((p) => p.region === region).map((p) => (
+                    <option key={p.middleClassCode} value={p.middleClassCode}>
+                      {p.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            {middleClassCode === '' && (
+              <p className="mt-1 text-xs text-[var(--color-neutral-700)]">
+                自動判別できませんでした。都道府県を選択してください。
+              </p>
+            )}
+          </div>
+
+          {/* エリア (smallClassCode) */}
           <div>
             <label htmlFor="hotel-area" className="block text-sm font-medium mb-1">
               エリア <span aria-hidden="true" className="text-red-500">*</span>
             </label>
             <select
               id="hotel-area"
-              value={largeClassCode}
-              onChange={(e) => setLargeClassCode(e.target.value)}
-              className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]"
+              value={smallClassCode}
+              onChange={(e) => setSmallClassCode(e.target.value)}
+              disabled={subAreas.length === 0}
+              className="w-full border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] disabled:opacity-50"
             >
               <option value="">エリアを選択</option>
-              {AREA_CODE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
+              {subAreas.map((sa) => (
+                <option key={sa.smallClassCode} value={sa.smallClassCode}>
+                  {sa.label}
                 </option>
               ))}
             </select>
-            {largeClassCode === '' && (
-              <p className="mt-1 text-xs text-[var(--color-neutral-700)]">
-                自動判別できませんでした。エリアを選択してください。
-              </p>
-            )}
           </div>
 
           {/* チェックイン */}
