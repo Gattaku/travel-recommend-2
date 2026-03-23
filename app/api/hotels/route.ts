@@ -8,7 +8,8 @@ import { createClient } from '@/src/lib/supabase/server';
 // ---------------------------------------------------------------------------
 
 const QuerySchema = z.object({
-  largeClassCode: z.string().min(1),
+  middleClassCode: z.string().min(1),
+  smallClassCode: z.string().min(1),
   checkinDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkoutDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   adultNum: z.coerce.number().int().min(1).max(10),
