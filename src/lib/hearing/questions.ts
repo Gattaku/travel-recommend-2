@@ -15,6 +15,7 @@ export const HEARING_QUESTIONS: HearingQuestion[] = [
     category: 'hobbies',
     questionText: '家族の趣味や興味を教えてください（複数選択可）',
     answerType: 'multi-select',
+    icon: 'palette',
     options: [
       { id: 'fishing', label: '釣り' },
       { id: 'hiking', label: 'ハイキング・登山' },
@@ -36,6 +37,7 @@ export const HEARING_QUESTIONS: HearingQuestion[] = [
     category: 'priorities',
     questionText: '旅行で特に重視することは何ですか？（最大3つ）',
     answerType: 'multi-select',
+    icon: 'star',
     options: [
       { id: 'scenery', label: '景色・絶景' },
       { id: 'food', label: '食事・グルメ' },
@@ -55,6 +57,7 @@ export const HEARING_QUESTIONS: HearingQuestion[] = [
     category: 'child-interests',
     questionText: 'お子さんが喜びそうな体験を教えてください（複数選択可）',
     answerType: 'multi-select',
+    icon: 'child',
     options: [
       { id: 'insects', label: '虫取り・昆虫観察' },
       { id: 'animals', label: '動物とのふれあい' },
@@ -74,6 +77,7 @@ export const HEARING_QUESTIONS: HearingQuestion[] = [
     category: 'transport',
     questionText: '移動手段の希望を教えてください',
     answerType: 'single-select',
+    icon: 'transport',
     options: [
       { id: 'car', label: '車（レンタカー含む）' },
       { id: 'train', label: '電車・新幹線' },
@@ -90,6 +94,7 @@ export const HEARING_QUESTIONS: HearingQuestion[] = [
     category: 'food',
     questionText: '食事に関するこだわりがあれば教えてください（複数選択可）',
     answerType: 'multi-select',
+    icon: 'food',
     options: [
       { id: 'local-cuisine', label: 'ご当地グルメを楽しみたい' },
       { id: 'seafood', label: '海鮮・新鮮な魚介' },
@@ -108,6 +113,7 @@ export const HEARING_QUESTIONS: HearingQuestion[] = [
     category: 'child-interests',
     questionText: '小さなお子さん向けの設備で重要なものを教えてください（複数選択可）',
     answerType: 'multi-select',
+    icon: 'baby',
     options: [
       { id: 'stroller-ok', label: 'ベビーカーで移動しやすい場所' },
       { id: 'baby-food', label: '離乳食対応のレストラン' },
@@ -124,6 +130,7 @@ export const HEARING_QUESTIONS: HearingQuestion[] = [
     category: 'priorities',
     questionText: '海外旅行について教えてください',
     answerType: 'multi-select',
+    icon: 'globe',
     options: [
       { id: 'english-ok', label: '英語圏が安心' },
       { id: 'non-english-ok', label: '非英語圏でも大丈夫' },
@@ -141,6 +148,7 @@ export const HEARING_QUESTIONS: HearingQuestion[] = [
     category: 'hobbies',
     questionText: 'その他、旅行の希望やリクエストがあれば自由に記入してください',
     answerType: 'free-text',
+    icon: 'pen',
     options: null,
     condition: null,
   },
